@@ -201,21 +201,21 @@ class _AddTimeSheetScreenState extends State<AddTimeSheetScreen> {
                         icon: Icons.arrow_drop_down,
                       ),
                       SelectInputBox(
-                        value: state.selectedValues.milestoneData?.name,
-                        onTap: () {
-                          context.read<AppCubit>().selectMilestone();
-                        },
-                        key: milestoneKey,
-                        title: "Select Milestone",
-                        icon: Icons.arrow_drop_down,
-                      ),
-                      SelectInputBox(
                         value: state.selectedValues.towerData?.name,
                         onTap: () {
                           context.read<AppCubit>().selectTower();
                         },
                         key: towerKey,
                         title: "Select Tower",
+                        icon: Icons.arrow_drop_down,
+                      ),
+                      SelectInputBox(
+                        value: state.selectedValues.milestoneData?.name,
+                        onTap: () {
+                          context.read<AppCubit>().selectMilestone();
+                        },
+                        key: milestoneKey,
+                        title: "Select Milestone",
                         icon: Icons.arrow_drop_down,
                       ),
                       SelectInputBox(
