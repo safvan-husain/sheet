@@ -1,13 +1,15 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:new_app/bloc/cubit.dart';
 import 'package:new_app/main.dart';
-import 'package:new_app/screens/widgets/select_input.dart';
+import 'package:new_app/screens/add_time_sheet/widgets/select_input.dart';
+import 'package:new_app/screens/time_sheet_list/time_sheet_list_screen.dart';
+import 'package:new_app/utils/date_time_utils.dart';
 import 'package:sizer/sizer.dart';
 
-import '../bloc/app_state.dart';
+import '../../bloc/app_state.dart';
 import 'widgets/date_time_picker.dart';
 
 class AddTimeSheetScreen extends StatefulWidget {
@@ -37,11 +39,13 @@ class _AddTimeSheetScreenState extends State<AddTimeSheetScreen> {
   bool isOtherTask = false;
   double? sheetHeight;
 
+  bool isBreakEnabled = false;
+
   @override
   Widget build(BuildContext context) {
     calculatePositions();
     return Scaffold(
-      backgroundColor: Colors.blue,
+      backgroundColor: const Color.fromARGB(255, 10, 5, 170),
       body: SafeArea(
         child: SizedBox(
           height: 100.h,
@@ -66,19 +70,15 @@ class _AddTimeSheetScreenState extends State<AddTimeSheetScreen> {
   }
 
   Future<Null> calculatePositions() {
-    print("calculating postion");
     return Future.microtask(() {
-      sheetHeight =
-          (sheetKey.currentContext!.findRenderObject() as RenderBox)
-              .size
-              .height;
-      print(sheetHeight);
+      sheetHeight = (sheetKey.currentContext!.findRenderObject() as RenderBox)
+          .size
+          .height;
 
       projectRenderBox =
           projectKey.currentContext!.findRenderObject() as RenderBox;
       Offset offset = Offset(0, -(100.h - sheetHeight! - 50));
 
-      print(offset);
       projectWidgetPostion = projectRenderBox!.localToGlobal(offset);
       if (isOtherTask) {
       } else {
@@ -100,24 +100,29 @@ class _AddTimeSheetScreenState extends State<AddTimeSheetScreen> {
   }
 
   Widget _buildAppBar() {
-    return const Padding(
-      padding: EdgeInsets.only(left: 10, right: 10, top: 10),
+    return Padding(
+      padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 15,
-            backgroundColor: Colors.white,
-            child: Center(
-              child: Icon(
-                Icons.arrow_back_ios,
-                size: 15,
-                color: Colors.grey,
+          InkWell(
+            onTap: () {
+              Get.to(() => const TimeSheetListScreen());
+            },
+            child: const CircleAvatar(
+              radius: 15,
+              backgroundColor: Colors.white,
+              child: Center(
+                child: Icon(
+                  Icons.arrow_back_ios,
+                  size: 15,
+                  color: Colors.grey,
+                ),
               ),
             ),
           ),
-          Spacer(),
-          Icon(Icons.contact_emergency),
-          Icon(Icons.arrow_drop_down)
+          const Spacer(),
+          const Icon(Icons.contact_emergency),
+          const Icon(Icons.arrow_drop_down)
         ],
       ),
     );
@@ -161,15 +166,15 @@ class _AddTimeSheetScreenState extends State<AddTimeSheetScreen> {
                   children: [
                     DateTimeSelector(
                       title: "Select Date",
-                      value: state.selectedDate.toString(),
+                      value: state.selectedDate == null
+                          ? "Select"
+                          : DateTimeUtils.formatDate(state.selectedDate!),
                       selector: context.read<AppCubit>().selectDate,
                       icon: Icons.calendar_month,
                     ),
                     _buildOnsiteChooser(),
                     SelectInputBox(
-                      value: state.selectedValues.projectData == null
-                          ? "Select"
-                          : state.selectedValues.projectData!.name,
+                      value: state.selectedValues.projectData?.name,
                       onTap: () {
                         context.read<AppCubit>().selectProject();
                       },
@@ -177,13 +182,17 @@ class _AddTimeSheetScreenState extends State<AddTimeSheetScreen> {
                       title: "Select Project",
                       icon: Icons.arrow_drop_down,
                     ),
-                    if (isOtherTask)
-                      ...[]
-                    else ...[
+                    if (isOtherTask) ...[
                       SelectInputBox(
-                        value: state.selectedValues.templateData == null
-                            ? "Select"
-                            : state.selectedValues.templateData!.name,
+                        value: "Select",
+                        onTap: () {},
+                        key: templateKey,
+                        title: "Other task not implemented",
+                        icon: Icons.arrow_drop_down,
+                      ),
+                    ] else ...[
+                      SelectInputBox(
+                        value: state.selectedValues.templateData?.name,
                         onTap: () {
                           context.read<AppCubit>().selectTemplateType();
                         },
@@ -192,9 +201,7 @@ class _AddTimeSheetScreenState extends State<AddTimeSheetScreen> {
                         icon: Icons.arrow_drop_down,
                       ),
                       SelectInputBox(
-                        value: state.selectedValues.milestoneData == null
-                            ? "Select"
-                            : state.selectedValues.milestoneData!.name,
+                        value: state.selectedValues.milestoneData?.name,
                         onTap: () {
                           context.read<AppCubit>().selectMilestone();
                         },
@@ -203,9 +210,7 @@ class _AddTimeSheetScreenState extends State<AddTimeSheetScreen> {
                         icon: Icons.arrow_drop_down,
                       ),
                       SelectInputBox(
-                        value: state.selectedValues.towerData == null
-                            ? "Select"
-                            : state.selectedValues.towerData!.name,
+                        value: state.selectedValues.towerData?.name,
                         onTap: () {
                           context.read<AppCubit>().selectTower();
                         },
@@ -214,9 +219,7 @@ class _AddTimeSheetScreenState extends State<AddTimeSheetScreen> {
                         icon: Icons.arrow_drop_down,
                       ),
                       SelectInputBox(
-                        value: state.selectedValues.taskData == null
-                            ? "Select"
-                            : state.selectedValues.taskData!.name,
+                        value: state.selectedValues.taskData?.name,
                         onTap: () {
                           context.read<AppCubit>().selectTask();
                         },
@@ -227,21 +230,37 @@ class _AddTimeSheetScreenState extends State<AddTimeSheetScreen> {
                     ],
                     _buildStartEndPickers(state),
                     _buildBreakTimeChooser(),
-                    if (isOtherTask)
+                    if (isOtherTask) ...[
+                      const Spacer(),
                       InkWell(
-                        onTap: () {},
+                        onTap: () async {
+                          await context.read<AppCubit>().onSubmit(
+                                isOnSite: false,
+                                isBreakEnabled: isBreakEnabled,
+                              );
+                          setState(() {
+                            isOtherTask = false;
+                            isBreakEnabled = false;
+                          });
+                        },
                         child: Container(
                           margin: const EdgeInsets.only(bottom: 10, top: 20),
                           padding: const EdgeInsets.all(10),
                           alignment: Alignment.center,
                           width: double.infinity,
                           decoration: BoxDecoration(
-                            color: Colors.blue,
+                            color: const Color.fromARGB(255, 0, 5, 170),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: Text("Save & Add more"),
+                          child: Text(
+                            "Save & Add more",
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
-                      )
+                      ),
+                    ]
                   ],
                 ),
                 if (state.currentDropDown != CurrentDropDown.none)
@@ -326,18 +345,19 @@ class _AddTimeSheetScreenState extends State<AddTimeSheetScreen> {
             width: 20,
           ),
           Switch(
-              value: isOtherTask,
-              onChanged: (value) {
-                setState(() {
-                  isOtherTask = value;
-                });
-              },
-              activeTrackColor: Colors.blue,
-              inactiveTrackColor: Colors.blue,
-              thumbColor: const WidgetStatePropertyAll(Colors.white),
-              trackOutlineColor: const WidgetStatePropertyAll(
-                Colors.blue,
-              )),
+            value: isOtherTask,
+            onChanged: (value) {
+              setState(() {
+                isOtherTask = value;
+              });
+            },
+            activeTrackColor: Colors.amber,
+            inactiveTrackColor: const Color.fromARGB(255, 10, 5, 170),
+            thumbColor: const WidgetStatePropertyAll(Colors.white),
+            trackOutlineColor: const WidgetStatePropertyAll(
+              Colors.white,
+            ),
+          ),
           const SizedBox(
             width: 20,
           ),
@@ -356,22 +376,28 @@ class _AddTimeSheetScreenState extends State<AddTimeSheetScreen> {
       margin: const EdgeInsets.symmetric(vertical: 10),
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
-        color: Colors.grey,
+        color: const Color.fromARGB(15, 0, 15, 45),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text("Select"),
+          Text("Total break time hours",
+              style: GoogleFonts.poppins(fontSize: 11)),
           Switch(
-              value: false,
-              onChanged: (_) {},
-              activeTrackColor: Colors.blue,
-              inactiveTrackColor: Colors.blue,
-              thumbColor: const WidgetStatePropertyAll(Colors.white),
-              trackOutlineColor: const WidgetStatePropertyAll(
-                Colors.blue,
-              )),
+            value: isBreakEnabled,
+            onChanged: (value) {
+              setState(() {
+                isBreakEnabled = value;
+              });
+            },
+            activeTrackColor: const Color.fromARGB(255, 10, 5, 170),
+            inactiveTrackColor: Colors.grey,
+            thumbColor: const WidgetStatePropertyAll(Colors.white),
+            trackOutlineColor: const WidgetStatePropertyAll(
+              Color.fromARGB(15, 0, 15, 450),
+            ),
+          ),
         ],
       ),
     );
@@ -384,10 +410,14 @@ class _AddTimeSheetScreenState extends State<AddTimeSheetScreen> {
         children: [
           Expanded(
             child: DateTimeSelector(
-              title: "Select Date",
-              value: state.selectedStartTime.toString(),
-              selector: () async {},
-              icon: Icons.calendar_month,
+              title: "Start time",
+              value: state.selectedStartTime == null
+                  ? "Select"
+                  : DateTimeUtils.formatTimeOfDay(state.selectedStartTime!),
+              selector: () async {
+                context.read<AppCubit>().selectStartTime();
+              },
+              icon: Icons.watch_later_rounded,
             ),
           ),
           const SizedBox(
@@ -395,10 +425,14 @@ class _AddTimeSheetScreenState extends State<AddTimeSheetScreen> {
           ),
           Expanded(
             child: DateTimeSelector(
-              value: state.selectedEndTime.toString(),
-              title: "Select Date",
-              selector: () async {},
-              icon: Icons.calendar_month,
+              value: state.selectedEndTime == null
+                  ? "Select"
+                  : DateTimeUtils.formatTimeOfDay(state.selectedEndTime!),
+              title: "End time",
+              selector: () async {
+                context.read<AppCubit>().selectEndTime();
+              },
+              icon: Icons.watch_later_rounded,
             ),
           ),
         ],

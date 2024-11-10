@@ -4,58 +4,63 @@ import 'package:get/get.dart';
 import 'package:new_app/models/active_task_model.dart';
 import 'package:new_app/models/milestone_model.dart';
 import 'package:new_app/models/project_model.dart';
+import 'package:new_app/models/time_sheet_model.dart';
 import 'package:new_app/models/tower_mode.dart';
 import 'package:new_app/services/api_services.dart';
+import 'package:new_app/utils/date_time_utils.dart';
 
+import '../models/template_model.dart';
 import 'app_state.dart';
 
 class AppCubit extends Cubit<AppState> {
   AppCubit() : super(AppState.initial());
 
-  var token =
-      "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vNDQuMjMzLjExMC4xNzAvYXBpL2FwcC1sb2dpbiIsImlhdCI6MTczMTE0Nzc3MSwiZXhwIjoxNzMxMTkwOTcxLCJuYmYiOjE3MzExNDc3NzEsImp0aSI6InNjeTh1VDF1eVlQaWtDT0IiLCJzdWIiOiIzMTEiLCJwcnYiOiIyM2JkNWM4OTQ5ZjYwMGFkYjM5ZTcwMWM0MDA4NzJkYjdhNTk3NmY3In0.VlFzWzb0Eo7oJuH78Ng_xCmDDq-kOwyTnsBeM7v4SrI";
+  String token =
+      "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vNDQuMjMzLjExMC4xNzAvYXBpL2FwcC1sb2dpbiIsImlhdCI6MTczMTIyMjAxNCwiZXhwIjoxNzMxMjY1MjE0LCJuYmYiOjE3MzEyMjIwMTQsImp0aSI6IkdVejdVb2xVSTMza2Q0anEiLCJzdWIiOiIzMTEiLCJwcnYiOiIyM2JkNWM4OTQ5ZjYwMGFkYjM5ZTcwMWM0MDA4NzJkYjdhNTk3NmY3In0.yMKGGiBUoZKg_uZfGqEnix9M1z5LxXdRjowoYzJX9NM";
   Future<void> initForm() async {
-    String? token = await ApiServices.getAuthToken();
-    if (token != null) {
-      emit(state.copyWith(authToken: token));
-      // var templates = await ApiServices.getTemplateTypes(token);
-      var projects = await ApiServices.getProjects(token);
-      emit(state.copyWith(
-          dropDowns: projects, currentDropDown: CurrentDropDown.none));
-    } else {
-      //throw todo
-    }
+    token = await ApiServices.getAuthToken() ?? "";
+    emit(state.copyWith(authToken: token));
+    // var templates = await ApiServices.getTemplateTypes(token);
+    var projects = await ApiServices.getProjects(token);
+    emit(state.copyWith(
+        dropDowns: projects, currentDropDown: CurrentDropDown.none));
   }
 
-  void test() async {
-    String? token = await ApiServices.getAuthToken();
-    if (token != null) {
-      var templates = await ApiServices.getTemplateTypes(token);
-      var projects = await ApiServices.getProjects(token);
-      var towers = await ApiServices.getTowers(
+  Future<List<TimeSheetModel>> getTimeSheetList() async {
+    print("time hseet cubit");
+    final result = await ApiServices.getTimeSheetList(token);
+    return result;
+
+  }
+
+  Future<void> onSubmit({required bool isOnSite, required bool isBreakEnabled}) async {
+    var selectedValues = state.selectedValues;
+    if (selectedValues.templateData != null &&
+        selectedValues.towerData != null &&
+        selectedValues.milestoneData != null &&
+        selectedValues.projectData != null &&
+        state.selectedDate != null &&
+        state.selectedStartTime != null &&
+        state.selectedEndTime != null) {
+      var response = await ApiServices.submitForm(
         authToken: token,
-        projectId: projects.first.id!,
-        type: 0,
-        id: 0,
-        templateType: templates.first.id,
+        date: DateTimeUtils.formatDate(state.selectedDate!),
+        startTime: DateTimeUtils.formatTimeOfDay(state.selectedStartTime!),
+        endTime: DateTimeUtils.formatTimeOfDay(state.selectedEndTime!),
+        projectId: state.selectedValues.projectData!.id,
+        taskType: isOnSite ? 1 : 0,
+        isBreak: isBreakEnabled,
+        towerId: state.selectedValues.towerData!.id,
+        taskId: state.selectedValues.taskData!.id,
+        mileStoneId: state.selectedValues.milestoneData!.id,
+        templateId: state.selectedValues.templateData!.id,
+        breakTime: null,
       );
 
-      var milestones = await ApiServices.getMilestones(
-        authToken: token,
-        towerId: towers.first.id!,
-        projectId: projects.first.id!,
-      );
-
-      var tasks = await ApiServices.getTasks(
-        authToken: token,
-        towerId: towers.first.id!,
-        projectId: projects.first.id!,
-        milestoneId: milestones.first.id!,
-      );
-      print(tasks);
-      //get other data
+      Get.snackbar("Success", "Timesheet saved successfully");
+      emit(AppState.initial());
     } else {
-      print("eror at a423972");
+      Get.snackbar("Invalid", "Please fill all fields");
     }
   }
 
@@ -73,8 +78,12 @@ class AppCubit extends Cubit<AppState> {
 
   void selectProject() async {
     var projects = await ApiServices.getProjects(token);
-    emit(state.copyWith(
-        dropDowns: projects, currentDropDown: CurrentDropDown.projects));
+    emit(
+      state.copyWith(
+        dropDowns: projects,
+        currentDropDown: CurrentDropDown.projects,
+      ),
+    );
   }
 
   void clearDropDown() {
@@ -84,7 +93,9 @@ class AppCubit extends Cubit<AppState> {
   void selectTemplateType() async {
     var templates = await ApiServices.getTemplateTypes(token);
     emit(state.copyWith(
-        dropDowns: templates, currentDropDown: CurrentDropDown.templateType));
+      dropDowns: templates,
+      currentDropDown: CurrentDropDown.templateType,
+    ));
   }
 
   void selectTower() async {
@@ -98,8 +109,12 @@ class AppCubit extends Cubit<AppState> {
         templateType: state.selectedValues.templateData!.id,
       );
 
-      emit(state.copyWith(
-          currentDropDown: CurrentDropDown.tower, dropDowns: result));
+      emit(
+        state.copyWith(
+          currentDropDown: CurrentDropDown.tower,
+          dropDowns: result,
+        ),
+      );
     } else {
       Get.snackbar("Invalid", "Please select above fiealds");
     }
@@ -171,31 +186,41 @@ class AppCubit extends Cubit<AppState> {
       case CurrentDropDown.projects:
         emit(
           state.copyWith(
-            selectedValues: state.selectedValues.copyWith(
-                projectData: state.dropDowns.elementAt(index) as ProjectData),
+            selectedValues: state.selectedValues
+                .copyWith(
+                    projectData:
+                        state.dropDowns.elementAt(index) as ProjectData)
+                .onSelectingProjectData(),
           ),
         );
 
       case CurrentDropDown.templateType:
         emit(
           state.copyWith(
-            selectedValues: state.selectedValues.copyWith(
-                templateData: state.dropDowns.elementAt(index) as TemplateData),
+            selectedValues: state.selectedValues
+                .copyWith(
+                    templateData:
+                        state.dropDowns.elementAt(index) as TemplateData)
+                .onSelectingTemplate(),
           ),
         );
       case CurrentDropDown.tower:
         emit(
           state.copyWith(
-            selectedValues: state.selectedValues.copyWith(
-                towerData: state.dropDowns.elementAt(index) as TowerData),
+            selectedValues: state.selectedValues
+                .copyWith(
+                    towerData: state.dropDowns.elementAt(index) as TowerData)
+                .onSelectingTower(),
           ),
         );
       case CurrentDropDown.milestone:
         emit(
           state.copyWith(
-            selectedValues: state.selectedValues.copyWith(
-                milestoneData:
-                    state.dropDowns.elementAt(index) as MilestoneData),
+            selectedValues: state.selectedValues
+                .copyWith(
+                    milestoneData:
+                        state.dropDowns.elementAt(index) as MilestoneData)
+                .onSelectingMilestone(),
           ),
         );
       case CurrentDropDown.tasks:

@@ -5,6 +5,8 @@ import 'package:new_app/models/project_model.dart';
 import 'package:new_app/models/tower_mode.dart';
 import 'package:new_app/services/api_services.dart';
 
+import '../models/template_model.dart';
+
 enum CurrentDropDown { projects, templateType, tower, milestone, tasks, none }
 
 class SelectedValues {
@@ -35,6 +37,37 @@ class SelectedValues {
       towerData: towerData ?? this.towerData,
       milestoneData: milestoneData ?? this.milestoneData,
       taskData: taskData ?? this.taskData,
+    );
+  }
+
+  SelectedValues onSelectingProjectData() {
+    return SelectedValues(
+      projectData: projectData,
+      templateData: templateData
+    );
+  }
+
+  SelectedValues onSelectingTemplate() {
+    return SelectedValues(
+        projectData: projectData,
+        templateData: templateData
+    );
+  }
+
+  SelectedValues onSelectingTower() {
+    return SelectedValues(
+        projectData: projectData,
+        templateData: templateData,
+        towerData: towerData,
+    );
+  }
+
+  SelectedValues onSelectingMilestone() {
+    return SelectedValues(
+      projectData: projectData,
+      templateData: templateData,
+      towerData: towerData,
+      milestoneData: milestoneData
     );
   }
 }

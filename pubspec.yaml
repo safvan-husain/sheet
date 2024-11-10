@@ -25,6 +25,7 @@ dependencies:
   sizer: ^3.0.4
   google_fonts: ^6.2.1
   http: ^1.2.2
+  intl:
 
 
   # The following adds the Cupertino Icons font to your application.
