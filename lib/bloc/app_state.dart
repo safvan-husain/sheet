@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:new_app/models/active_task_model.dart';
 import 'package:new_app/models/milestone_model.dart';
 import 'package:new_app/models/project_model.dart';
@@ -44,8 +45,8 @@ class AppState {
   final List<DropDownData> dropDowns;
   final bool isOnsite;
   final DateTime? selectedDate;
-  final DateTime? selectedStartTime;
-  final DateTime? selectedEndTime;
+  final TimeOfDay? selectedStartTime;
+  final TimeOfDay? selectedEndTime;
   final bool isTotalBreakTimeHourEnabled;
   final SelectedValues selectedValues;
 
@@ -75,8 +76,8 @@ class AppState {
       List<DropDownData>? dropDowns,
       bool? isOnsite,
       DateTime? selectedDate,
-      DateTime? selectedStartTime,
-      DateTime? selectedEndTime,
+      TimeOfDay? selectedStartTime,
+      TimeOfDay? selectedEndTime,
       bool? isTotalBreakTimeHourEnabled,
       CurrentDropDown? currentDropDown,
       SelectedValues? selectedValues}) {

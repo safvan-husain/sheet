@@ -1,53 +1,54 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class SelectInputBox extends StatelessWidget {
   final String title;
-  final int? selectedIndex;
-  final List<String> dropDownValues;
   final IconData icon;
   final void Function() onTap;
+  final String value;
 
   const SelectInputBox({
     super.key,
     required this.onTap,
     required this.title,
-    required this.dropDownValues,
-    required this.selectedIndex,
     required this.icon,
+    required this.value,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text(title),
-        ),
-        GestureDetector(
-          onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: Colors.greenAccent,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  selectedIndex == null
-                      ? "select "
-                      : dropDownValues.elementAt(selectedIndex!),
-                ),
-                Icon(icon),
-              ],
-            ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 5),
+            child: Text(title, style: GoogleFonts.poppins(fontSize: 11),),
           ),
-        )
-      ],
+          GestureDetector(
+            onTap: onTap,
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.greenAccent,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    value,
+                    style: GoogleFonts.poppins(fontSize: 11),
+                  ),
+                  Icon(icon),
+                ],
+              ),
+            ),
+          )
+        ],
+      ),
     );
   }
 }

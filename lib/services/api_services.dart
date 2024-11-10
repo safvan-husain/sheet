@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
+import 'package:new_app/bloc/app_state.dart';
 import 'package:new_app/models/active_task_model.dart';
 import 'package:new_app/models/milestone_model.dart';
 import 'package:new_app/models/tower_mode.dart';
@@ -168,22 +169,13 @@ class ApiServices {
 }
 
 //TODO
-class TemplateData {
-  final String templateName;
-  final int id;
+class TemplateData  extends DropDownData {
 
-  TemplateData({required this.templateName, required this.id});
-
-  Map<String, dynamic> toMap() {
-    return {
-      'template_name': templateName,
-      'id': id,
-    };
-  }
+  TemplateData({required super.id, required super.name});
 
   factory TemplateData.fromMap(Map<String, dynamic> map) {
     return TemplateData(
-      templateName: map['template_name'] as String,
+      name: map['template_name'] as String,
       id: map['id'] as int,
     );
   }
